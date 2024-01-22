@@ -1,23 +1,23 @@
-const redis = require('redis');
-const client = redis.createClient();
-const cacheMiddleware = require('../authenticate/cacheMiddleware');
-
+//const redis = require('redis');
+//const client = redis.createClient();
+//const cacheMiddleware = require('../authenticate/cacheMiddleware');
+    
 
 const Task = require('../models/task');
 
-// Middleware to cache the list of tasks
-const cacheMiddleware = (req, res, next) => {
-    client.get('tasks', (err, data) => {
-        if (err) throw err;
+// // Middleware to cache the list of tasks
+// const cacheMiddleware = (req, res, next) => {
+//     client.get('tasks', (err, data) => {
+//         if (err) throw err;
 
-        if (data !== null) {
-            console.log('Data from cache');
-            res.send(JSON.parse(data));
-        } else {
-            next();
-        }
-    });
-};
+//         if (data !== null) {
+//             console.log('Data from cache');
+//             res.send(JSON.parse(data));
+//         } else {
+//             next();
+//         }
+//     });
+// };
 
 post = async (req, res) => {
     const task = new Task({
@@ -26,7 +26,7 @@ post = async (req, res) => {
     try {
         await task.save();
         // Clear the cache after adding a new task
-        client.del('tasks');
+        //client.del('tasks');
         res.status(200).send("Task saved:" + task);
     } catch (e) {
         res.status(400).send(e);
@@ -39,19 +39,13 @@ getAll = async (req, res) => {
         console.log(tasks);
         
         // Cache the list of tasks
-        client.setex('tasks', 3600, JSON.stringify(tasks));
+        //client.setex('tasks', 3600, JSON.stringify(tasks));
 
         return res.status(200).send(tasks);
     } catch (e) {
         res.status(500).send(e);
     }
 };
-
-// ... (other functions remain unchanged)
-
-module.exports = { post, del, update, get, getAll, cacheMiddleware };
-
-
 get = async(req,res)=>{
     console.log("GET runs")
     const task_id=req.params.id;
@@ -75,8 +69,8 @@ update =  async (req,res) =>{
     }
     try{
         const task=await Task.findOne({
-            _id:req.params.id
-            // owner:req.user._id
+            _id:req.params.id,
+             owner:req.user._id
         });
         if(!task){
             res.send({error:"Task ID not found to update"});
@@ -89,11 +83,11 @@ update =  async (req,res) =>{
     }
 }
 
-del =  async (req,res)=>{
+del =  async (req,res)=>{   
     try{
         const task=await Task.findOneAndDelete({
-            _id:req.params.id
-            // owner:req.user._id
+            _id:req.params.id,
+            owner:req.user._id
         });
         if(!task){
             res.status(400).send({error: "Task ID not found"});
